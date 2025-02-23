@@ -4,3 +4,5 @@ lofi-donut/.env
 .DS_Store
 
 lofi-donut/node_modules
+
+node_modules/

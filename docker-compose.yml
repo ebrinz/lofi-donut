@@ -15,19 +15,19 @@ services:
       - CHOKIDAR_USEPOLLING=true
     stdin_open: true
 
-  llm:
-    container_name: llm
-    build:
-      context: .
-      dockerfile: llm/Dockerfile
-    ports:
-      - "11434:11434"
-    networks:
-      - lofi-network
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-    command: "ollama serve"
+  # llm:
+  #   container_name: llm
+  #   build:
+  #     context: .
+  #     dockerfile: llm/Dockerfile
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - lofi-network
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   restart: unless-stopped
+  #   command: "ollama serve"
 
 networks:
   lofi-network:

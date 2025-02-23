@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { LLM_CONFIG, MAP_AREAS } from '../constants'
-import { StoredMap, LLMResponse } from '../types/map'
+import { LLM_CONFIG, MAP_AREAS } from '../constants'  // Fixed this path
+import { StoredMap, LLMResponse } from '../types/map'  // Added missing quote and fixed path
 
 interface Message {
   role: 'user' | 'assistant'
@@ -18,6 +18,8 @@ export default function LLMInterface({ selectedArea, storedMaps }: LLMInterfaceP
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const chatRef = useRef<HTMLDivElement>(null)
+
+  // Rest of your component code...
 
   // Reset chat when area changes
   useEffect(() => {

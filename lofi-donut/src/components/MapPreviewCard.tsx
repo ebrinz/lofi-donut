@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapArea, StoredMap } from '../types/map'
-import { TILE_SERVERS, MAP_STYLES } from '../constants'
+import { TILE_SERVERS } from '../constants'
 
 interface MapPreviewCardProps {
   area: MapArea
@@ -27,131 +28,13 @@ export default function MapPreviewCard({
   )
   const [mapLoaded, setMapLoaded] = useState(false)
 
-//   useEffect(() => {
-//     let currentMap: maplibregl.Map | null = null;
+  useEffect(() => {
+    let currentMap: maplibregl.Map | null = null
+    let mounted = true
 
-//     const initMap = async () => {
-//       if (!mapContainer.current || map.current) return;
-
-//       try {
-//         currentMap = new maplibregl.Map({
-//           container: mapContainer.current,
-//           style: {
-//             version: 8,
-//             sources: {
-//               'osm': {
-//                 type: 'raster',
-//                 tiles: TILE_SERVERS.osm,
-//                 tileSize: 256,
-//               }
-//             },
-//             layers: [{
-//               id: 'osm',
-//               type: 'raster',
-//               source: 'osm',
-//               paint: {
-//                 'raster-opacity': 0.8
-//               }
-//             }]
-//           },
-//           bounds: [
-//             area.bounds.west,
-//             area.bounds.south,
-//             area.bounds.east,
-//             area.bounds.north
-//           ],
-//           fitBoundsOptions: { padding: 10 },
-//           interactive: false,
-//           preserveDrawingBuffer: true
-//         });
-
-//         // Wait for map to load before proceeding
-//         await new Promise<void>((resolve) => {
-//           currentMap!.on('load', () => {
-//             setMapLoaded(true);
-//             map.current = currentMap;
-//             resolve();
-//           });
-//         });
-
-//         // Add area outline
-//         currentMap.addSource('area-bounds', {
-//           type: 'geojson',
-//           data: {
-//             type: 'Feature',
-//             properties: {},
-//             geometry: {
-//               type: 'Polygon',
-//               coordinates: [[
-//                 [area.bounds.west, area.bounds.north],
-//                 [area.bounds.east, area.bounds.north],
-//                 [area.bounds.east, area.bounds.south],
-//                 [area.bounds.west, area.bounds.south],
-//                 [area.bounds.west, area.bounds.north]
-//               ]]
-//             }
-//           }
-//         });
-
-//         currentMap.addLayer({
-//           id: 'area-bounds-fill',
-//           type: 'fill',
-//           source: 'area-bounds',
-//           paint: {
-//             'fill-color': isSelected ? '#3B82F6' : '#9CA3AF',
-//             'fill-opacity': 0.2
-//           }
-//         });
-
-//         currentMap.addLayer({
-//           id: 'area-bounds-line',
-//           type: 'line',
-//           source: 'area-bounds',
-//           paint: {
-//             'line-color': isSelected ? '#2563EB' : '#6B7280',
-//             'line-width': 2
-//           }
-//         });
-
-//         // Add markers for landmarks
-//         area.landmarks.forEach((landmark, i) => {
-//           const el = document.createElement('div');
-//           el.className = 'w-2 h-2 rounded-full bg-red-500';
-          
-//           const lngSpan = area.bounds.east - area.bounds.west;
-//           const latSpan = area.bounds.north - area.bounds.south;
-//           const lng = area.bounds.west + (lngSpan * (i + 1)) / (area.landmarks.length + 1);
-//           const lat = area.bounds.south + (latSpan * (i + 1)) / (area.landmarks.length + 1);
-
-//           new maplibregl.Marker(el)
-//             .setLngLat([lng, lat])
-//             .addTo(currentMap);
-//         });
-
-//       } catch (error) {
-//         console.error('Error initializing map:', error);
-//         setMapLoaded(false);
-//       }
-//     };
-
-//     initMap();
-
-//     return () => {
-//       if (currentMap) {
-//         currentMap.remove();
-//         map.current = null;
-//         setMapLoaded(false);
-//       }
-//     };
-//   }, [area.id]); // Only recreate map when area changes
-
-useEffect(() => {
-    let currentMap: maplibregl.Map | null = null;
-    let mounted = true;
-  
     const initMap = async () => {
-      if (!mapContainer.current || map.current) return;
-  
+      if (!mapContainer.current || map.current) return
+
       try {
         currentMap = new maplibregl.Map({
           container: mapContainer.current,
@@ -182,122 +65,118 @@ useEffect(() => {
           fitBoundsOptions: { padding: 10 },
           interactive: false,
           renderWorldCopies: false,
-          fadeDuration: 0,
-          antialias: true
-        });
-  
-        // Only proceed if still mounted
-        if (!mounted) {
-          currentMap.remove();
-          return;
-        }
-  
-        currentMap.once('load', () => {
-          if (!mounted || !currentMap) return;
+        //   antialias: true
+        })
+
+        // Wait for map to load
+        await new Promise<void>((resolve) => {
+          currentMap!.once('load', () => {
+            if (!mounted || !currentMap) return
+            
+            setMapLoaded(true)
+            map.current = currentMap
+            resolve()
+          })
+        })
+
+        // Add area outline
+        currentMap.addSource('area-bounds', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [area.bounds.west, area.bounds.north],
+                [area.bounds.east, area.bounds.north],
+                [area.bounds.east, area.bounds.south],
+                [area.bounds.west, area.bounds.south],
+                [area.bounds.west, area.bounds.north]
+              ]]
+            }
+          }
+        })
+
+        // Add fill layer
+        currentMap.addLayer({
+          id: 'area-bounds-fill',
+          type: 'fill',
+          source: 'area-bounds',
+          paint: {
+            'fill-color': isSelected ? '#3B82F6' : '#9CA3AF',
+            'fill-opacity': 0.2
+          }
+        })
+
+        // Add line layer
+        currentMap.addLayer({
+          id: 'area-bounds-line',
+          type: 'line',
+          source: 'area-bounds',
+          paint: {
+            'line-color': isSelected ? '#2563EB' : '#6B7280',
+            'line-width': 2
+          }
+        })
+
+        // Add markers for landmarks
+        area.landmarks.forEach((landmark, i) => {
+          if (!currentMap) return
           
-          setMapLoaded(true);
-          map.current = currentMap;
-  
-          // Add area outline
-          currentMap.addSource('area-bounds', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Polygon',
-                coordinates: [[
-                  [area.bounds.west, area.bounds.north],
-                  [area.bounds.east, area.bounds.north],
-                  [area.bounds.east, area.bounds.south],
-                  [area.bounds.west, area.bounds.south],
-                  [area.bounds.west, area.bounds.north]
-                ]]
-              }
-            }
-          });
-  
-          // Add fill layer
-          currentMap.addLayer({
-            id: 'area-bounds-fill',
-            type: 'fill',
-            source: 'area-bounds',
-            paint: {
-              'fill-color': isSelected ? '#3B82F6' : '#9CA3AF',
-              'fill-opacity': 0.2
-            }
-          });
-  
-          // Add line layer
-          currentMap.addLayer({
-            id: 'area-bounds-line',
-            type: 'line',
-            source: 'area-bounds',
-            paint: {
-              'line-color': isSelected ? '#2563EB' : '#6B7280',
-              'line-width': 2
-            }
-          });
-  
-          // Add markers
-          area.landmarks.forEach((landmark, i) => {
-            if (!currentMap) return;
-            
-            const el = document.createElement('div');
-            el.className = 'w-2 h-2 rounded-full bg-red-500';
-            
-            const lngSpan = area.bounds.east - area.bounds.west;
-            const latSpan = area.bounds.north - area.bounds.south;
-            const lng = area.bounds.west + (lngSpan * (i + 1)) / (area.landmarks.length + 1);
-            const lat = area.bounds.south + (latSpan * (i + 1)) / (area.landmarks.length + 1);
-  
-            new maplibregl.Marker(el)
-              .setLngLat([lng, lat])
-              .addTo(currentMap);
-          });
-        });
-  
+          const el = document.createElement('div')
+          el.className = 'w-2 h-2 rounded-full bg-red-500'
+          
+          const lngSpan = area.bounds.east - area.bounds.west
+          const latSpan = area.bounds.north - area.bounds.south
+          const lng = area.bounds.west + (lngSpan * (i + 1)) / (area.landmarks.length + 1)
+          const lat = area.bounds.south + (latSpan * (i + 1)) / (area.landmarks.length + 1)
+
+          new maplibregl.Marker(el)
+            .setLngLat([lng, lat])
+            .addTo(currentMap)
+        })
+
       } catch (error) {
-        console.error('Error initializing map:', error);
+        console.error('Error initializing map:', error)
         if (mounted) {
-          setMapLoaded(false);
+          setMapLoaded(false)
         }
       }
-    };
-  
-    initMap();
-  
+    }
+
+    initMap()
+
     // Cleanup
     return () => {
-      mounted = false;
+      mounted = false
       if (currentMap) {
-        currentMap.remove();
-        map.current = null;
-        setMapLoaded(false);
+        currentMap.remove()
+        map.current = null
+        setMapLoaded(false)
       }
-    };
-  }, [area.id, isSelected]); // Added isSelected to dependencies
-
+    }
+  }, [area.id, isSelected])
 
   // Update selection state
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
+    if (!map.current || !mapLoaded) return
 
     try {
       map.current.setPaintProperty(
         'area-bounds-fill',
         'fill-color',
         isSelected ? '#3B82F6' : '#9CA3AF'
-      );
+      )
       map.current.setPaintProperty(
         'area-bounds-line',
         'line-color',
         isSelected ? '#2563EB' : '#6B7280'
-      );
+      )
     } catch (error) {
-      console.error('Error updating selection state:', error);
+      console.error('Error updating selection state:', error)
     }
-  }, [isSelected, mapLoaded]);
+  }, [isSelected, mapLoaded])
 
   return (
     <div 
@@ -355,8 +234,8 @@ useEffect(() => {
           )}
           <button
             onClick={(e) => {
-              e.stopPropagation();
-              onDownload(area);
+              e.stopPropagation()
+              onDownload(area)
             }}
             disabled={downloading}
             className={`px-3 py-1.5 rounded text-sm font-medium ${
@@ -370,5 +249,5 @@ useEffect(() => {
         </div>
       </div>
     </div>
-  );
+  )
 }

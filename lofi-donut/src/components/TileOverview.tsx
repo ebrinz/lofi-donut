@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import { StoredMap } from '../types/map'
 import { MAP_AREAS, TILE_SERVERS } from '../constants'
